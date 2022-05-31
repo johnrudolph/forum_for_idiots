@@ -1,19 +1,28 @@
 <nav x-data="{ open: false }" class="bg-gray-900 border-b border-gray-400">
     <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-4 lg:px-6">
         <div class="flex justify-between h-16">
             <div class="flex">
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}">
-                        <x-application-logo class="block h-10 w-auto fill-current text-white" />
-                    </a>
-                </div>
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
+                        {{ __('Home') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('all')" :active="request()->routeIs('all')">
+                        {{ __('All posts') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('give-advice')" :active="request()->routeIs('give-advice')">
+                        {{ __('Give advice') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('submit-definition')" :active="request()->routeIs('submit-definition')">
+                        {{ __('Define a word') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('submit-question')" :active="request()->routeIs('submit-question')">
+                        {{ __('Ask a Question') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('submit-word')" :active="request()->routeIs('submit-word')">
+                        {{ __('Ask for Definition') }}
                     </x-nav-link>
                 </div>
             </div>
@@ -64,11 +73,28 @@
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
+                {{ __('Home') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('all')" :active="request()->routeIs('all')">
+                {{ __('All posts') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('give-advice')" :active="request()->routeIs('give-advice')">
+                {{ __('Give advice') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('submit-definition')" :active="request()->routeIs('submit-definition')">
+                {{ __('Define a word') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('submit-question')" :active="request()->routeIs('submit-question')">
+                {{ __('Ask a Question') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('submit-word')" :active="request()->routeIs('submit-word')">
+                {{ __('Ask for Definition') }}
             </x-responsive-nav-link>
         </div>
 
         <!-- Responsive Settings Options -->
+        @if (Route::has('login'))
+        @auth
         <div class="pt-4 pb-1 border-t border-gray-200">
             <div class="px-4">
                 <div class="font-medium text-base text-white">{{ Auth::user()->name }}</div>
@@ -88,5 +114,7 @@
                 </form>
             </div>
         </div>
+        @endauth
+        @endif
     </div>
 </nav>

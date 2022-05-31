@@ -1,35 +1,6 @@
 <div wire:poll>
     <div class="flex flex-col gap-y-4">
 
-        <!-- Today's questions -->
-        <div class="flex flex-col w-full bg-gray-700 border border-color-white rounded-lg">
-            <div class="bg-gray-800 rounded-t-lg">
-                <p class="pt-4 pl-4 pb-2 text-white text-lg leading-7 font-semibold tracking-wide">
-                    Answer today's questions
-                </p>
-            </div>
-            <div>
-                <p class="pt-3 px-4 text-white text-md font-semi-bold leading-7">
-                    Word of the day: {{ $word_of_the_day->title }}
-                </p>
-                <button wire:click="submitDefinition">
-                    <p class="pt-2 px-4 pb-4 text-left text-blue-500 text-sm">
-                        Submit a definition
-                    </p>
-                </button>
-            </div>
-            <div>
-                <p class="px-4 text-white text-md font-semi-bold leading-7">
-                    Today's question: {{ $advice->title }}
-                </p>
-                <button wire:click="submitAdvice">
-                    <p class="pt-2 px-4 pb-4 text-blue-500 text-sm text-left">
-                        Submit some advice 
-                    </p>
-                </button>
-            </div>
-        </div>
-
         <!-- Recent word of the day -->
         <div class="flex flex-col w-full bg-gray-700 border border-color-white rounded-lg">
             <div class="bg-gray-800 rounded-t-lg">
@@ -114,6 +85,35 @@
                 <button wire:click="askForAdvice">
                     <p class="pt-2 px-4 pb-4 text-blue-500 text-sm text-left">
                         Ask for advice and vote on upcoming submissions
+                    </p>
+                </button>
+            </div>
+        </div>
+
+        <!-- Today's questions -->
+        <div class="flex flex-col w-full bg-gray-700 border border-color-white rounded-lg">
+            <div class="bg-gray-800 rounded-t-lg">
+                <p class="pt-4 pl-4 pb-2 text-white text-lg leading-7 font-semibold tracking-wide">
+                    Answer today's questions
+                </p>
+            </div>
+            <div>
+                <p class="pt-3 px-4 text-white text-md font-semi-bold leading-7">
+                    Word of the day: {{ $word_of_the_day->title }}
+                </p>
+                <button wire:click="submitDefinition">
+                    <p class="pt-2 px-4 pb-4 text-left text-blue-500 text-sm">
+                        Submit a definition
+                    </p>
+                </button>
+            </div>
+            <div>
+                <p class="px-4 text-white text-md font-semi-bold leading-7">
+                    Today's question: {{ $advice->title }}
+                </p>
+                <button wire:click="submitAdvice">
+                    <p class="pt-2 px-4 pb-4 text-blue-500 text-sm text-left">
+                        Submit some advice 
                     </p>
                 </button>
             </div>

@@ -51,7 +51,7 @@ class Work extends Model
                 'title' => $title,
                 'type' => $type,
                 'status' => 'in_progress',
-                'created_by' => $user->id,
+                'user_id' => $user->id,
             ]);
         }
         else
@@ -60,7 +60,7 @@ class Work extends Model
                 'title' => $title,
                 'type' => $type,
                 'status' => 'queued',
-                'created_by' => $user->id,
+                'user_id' => $user->id,
             ]);
         }
     }

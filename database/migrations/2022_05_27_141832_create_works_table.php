@@ -18,7 +18,7 @@ return new class extends Migration
         Schema::create('works', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Round::class, 'round_id')->nullable();
-            $table->foreignIdFor(User::class, 'created_by')->nullable();
+            $table->foreignIdFor(User::class, 'user_id')->nullable();
             $table->string('title');
             $table->string('type')->enum(['poem', 'short_story', 'word_of_the_day', 'advice']);
             $table->string('status')->enum(['in_progress', 'complete']);

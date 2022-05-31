@@ -8,30 +8,30 @@ use App\Models\Submission;
 use Illuminate\Support\Facades\Auth;
 use App\Exceptions\InvalidVoteException;
 
-class SubmitDefinition extends Component
+class SubmitAdvice extends Component
 {
-    public $new_definition;
+    public $new_advice;
     protected $rules = [
-        'new_definition' => 'required|string|min:3|max:250',
+        'new_advice' => 'required|string|min:3|max:250',
     ];
     
     public function mount()
     {
         $this->user = Auth::user();
 
-        $this->word = Work::where('status', 'in_progress')
-            ->where('type', 'word_of_the_day')
+        $this->question = Work::where('status', 'in_progress')
+            ->where('type', 'advice')
             ->get()
             ->last();
 
-        $this->definitions = Submission::where('work_id', $this->word->id)
+        $this->advice_submissions = Submission::where('work_id', $this->question->id)
             ->where('status', 'pending')
             ->orderByDesc('score')
             ->get();
 
         $this->sort_by = 'score';
 
-        if(Submission::where('work_id', $this->word->id)
+        if(Submission::where('work_id', $this->question->id)
             ->where('status', 'pending')
             ->where('user_id', $this->user->id)
             ->count() > 0)
@@ -44,24 +44,24 @@ class SubmitDefinition extends Component
         }
     }
     
-    public function submitNewDefinition()
+    public function submitNewAdvice()
     {
         $this->validate();
         
-        Submission::fromTemplate($this->word, $this->user, $this->new_definition);
+        Submission::fromTemplate($this->question, $this->user, $this->new_advice);
 
         $this->at_max_submissions = true;
 
         $this->sort();
     }
 
-    public function upvoteDefinition(Int $definition_id)
+    public function upvoteAdvice(Int $advice_id)
     {
-        $definition = Submission::find($definition_id);
+        $advice = Submission::find($advice_id);
         
         try
         {
-            $definition->upvote($this->user);
+            $advice->upvote($this->user);
         }
         catch (InvalidVoteException $e)
         {
@@ -71,13 +71,13 @@ class SubmitDefinition extends Component
         $this->sort();
     }
 
-    public function downvoteDefinition(Int $definition_id)
+    public function downvoteAdvice(Int $advice_id)
     {  
-        $definition = Submission::find($definition_id);
+        $advice = Submission::find($advice_id);
         
         try
         {
-            $definition->downvote($this->user);
+            $advice->downvote($this->user);
         }
         catch (InvalidVoteException $e)
         {
@@ -89,7 +89,7 @@ class SubmitDefinition extends Component
 
     public function sortByScore()
     {
-        $this->definitions = Submission::where('work_id', $this->word->id)
+        $this->advice_submissions = Submission::where('work_id', $this->question->id)
             ->where('status', 'pending')
             ->orderByDesc('score')
             ->get();
@@ -99,7 +99,7 @@ class SubmitDefinition extends Component
 
     public function sortByRecent()
     {
-        $this->definitions = Submission::where('work_id', $this->word->id)
+        $this->advice_submissions = Submission::where('work_id', $this->question->id)
             ->where('status', 'pending')
             ->orderByDesc('created_at')
             ->get();
@@ -109,7 +109,7 @@ class SubmitDefinition extends Component
 
     public function sortByMine()
     {     
-        $this->definitions = Submission::where('work_id', $this->word->id)
+        $this->advice_submissions = Submission::where('work_id', $this->question->id)
             ->where('status', 'pending')
             ->where('user_id', $this->user->id)
             ->get();
@@ -133,11 +133,11 @@ class SubmitDefinition extends Component
         }
     }
 
-    public function delete(Int $definition_id)
+    public function delete(Int $advice_id)
     {
-        $definition = Submission::find($definition_id);
+        $advice = Submission::find($advice_id);
 
-        $definition->delete();
+        $advice->delete();
 
         $this->sort();
 
@@ -146,6 +146,6 @@ class SubmitDefinition extends Component
     
     public function render()
     {
-        return view('livewire.submit-definition');
+        return view('livewire.submit-advice');
     }
 }

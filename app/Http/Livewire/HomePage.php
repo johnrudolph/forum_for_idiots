@@ -94,17 +94,17 @@ class HomePage extends Component
 
     public function submitDefinition()
     {
-        redirect('/word-of-the-day/' . $this->word_of_the_day->id);
+        redirect('/define-word-of-the-day');
     }
 
     public function submitAdvice()
     {
-        redirect('/advice/' . $this->advice->id);
+        redirect('/give-advice');
     }
 
     public function askForAdvice()
     {
-        redirect('/aks-for-advice');
+        redirect('/submit-question');
     }
 
     public function submitNewWord()

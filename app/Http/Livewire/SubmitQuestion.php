@@ -7,25 +7,25 @@ use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use App\Exceptions\InvalidVoteException;
 
-class SubmitWord extends Component
+class SubmitQuestion extends Component
 {
-    public $new_word;
+    public $new_question;
     protected $rules = [
-        'new_word' => 'required|string|min:3|max:50',
+        'new_question' => 'required|string|min:3|max:250',
     ];
     
     public function mount()
     {
         $this->user = Auth::user();
 
-        $this->words = Work::where('type', 'word_of_the_day')
+        $this->questions = Work::where('type', 'advice')
             ->where('status', 'queued')
             ->orderByDesc('score')
             ->get();
 
         $this->sort_by = 'score';
 
-        if(Work::where('type', 'word_of_the_day')
+        if(Work::where('type', 'advice')
             ->where('status', 'queued')
             ->where('user_id', $this->user->id)
             ->count() > 2)
@@ -38,15 +38,15 @@ class SubmitWord extends Component
         }
     }
     
-    public function submitNewWord()
+    public function submitNewQuestion()
     {
         $this->validate();
         
-        Work::fromTemplate($this->new_word, 'word_of_the_day', $this->user);
+        Work::fromTemplate($this->new_question, 'advice', $this->user);
 
-        $this->new_word = '';
+        $this->new_question = '';
 
-        if(Work::where('type', 'word_of_the_day')
+        if(Work::where('type', 'advice')
             ->where('status', 'queued')
             ->where('user_id', $this->user->id)
             ->count() > 2)
@@ -57,13 +57,13 @@ class SubmitWord extends Component
         $this->sort();
     }
 
-    public function upvoteWord(Int $word_id)
+    public function upvoteQuestion(Int $question_id)
     {
-        $word = Work::find($word_id);
+        $question = Work::find($question_id);
         
         try
         {
-            $word->upvote($this->user);
+            $question->upvote($this->user);
         }
         catch (InvalidVoteException $e)
         {
@@ -73,13 +73,13 @@ class SubmitWord extends Component
         $this->sort();
     }
 
-    public function downvoteWord(Int $word_id)
+    public function downvoteQuestion(Int $question_id)
     {  
-        $word = Work::find($word_id);
+        $question = Work::find($question_id);
         
         try
         {
-            $word->downvote($this->user);
+            $question->downvote($this->user);
         }
         catch (InvalidVoteException $e)
         {
@@ -91,7 +91,7 @@ class SubmitWord extends Component
 
     public function sortByScore()
     {
-        $this->words = Work::where('type', 'word_of_the_day')
+        $this->questions = Work::where('type', 'advice')
             ->where('status', 'queued')
             ->orderByDesc('score')
             ->get();
@@ -101,7 +101,7 @@ class SubmitWord extends Component
 
     public function sortByRecent()
     {
-        $this->words = Work::where('type', 'word_of_the_day')
+        $this->questions = Work::where('type', 'advice')
             ->where('status', 'queued')
             ->orderByDesc('created_at')
             ->get();
@@ -111,7 +111,7 @@ class SubmitWord extends Component
 
     public function sortByMine()
     {
-        $this->words = Work::where('type', 'word_of_the_day')
+        $this->questions = Work::where('type', 'advice')
             ->where('status', 'queued')
             ->where('user_id', $this->user->id)
             ->orderByDesc('score')
@@ -136,11 +136,11 @@ class SubmitWord extends Component
         }
     }
 
-    public function delete(Int $word_id)
+    public function delete(Int $question_id)
     {
-        $word = Work::find($word_id);
+        $question = Work::find($question_id);
 
-        $word->delete();
+        $question->delete();
 
         $this->sort();
 
@@ -149,7 +149,7 @@ class SubmitWord extends Component
 
     public function checkForMaxSubmissions()
     {
-        if(Work::where('type', 'word_of_the_day')
+        if(Work::where('type', 'advice')
         ->where('status', 'queued')
         ->where('user_id', $this->user->id)
         ->count() > 2)
@@ -164,6 +164,6 @@ class SubmitWord extends Component
 
     public function render()
     {
-        return view('livewire.submit-word');
+        return view('livewire.submit-question');
     }
 }

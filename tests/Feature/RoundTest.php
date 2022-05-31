@@ -20,6 +20,34 @@ beforeEach(function () {
     TestTime::freeze(Carbon::parse('2021-12-03 10:00'));
     Round::fromTemplate();
     $this->round = Round::first();
+
+    Work::create([
+        'title' => 'The first word',
+        'type' => 'word_of_the_day',
+        'user_id' => $this->user1->id,
+        'status' => 'in_progress',
+    ]);
+
+    Work::create([
+        'title' => 'A new word',
+        'type' => 'word_of_the_day',
+        'user_id' => $this->user1->id,
+        'status' => 'queued',
+    ]);
+
+    Work::create([
+        'title' => 'The first question',
+        'type' => 'advice',
+        'user_id' => $this->user1->id,
+        'status' => 'in_progress',
+    ]);
+
+    Work::create([
+        'title' => 'A new question',
+        'type' => 'advice',
+        'user_id' => $this->user1->id,
+        'status' => 'queued',
+    ]);
 });
 
 it('can create a round lasting 24 hours', function () {
@@ -111,20 +139,6 @@ it('selects a random top-scoring submission if tied submissions also have tied a
 }); 
 
 it('sets up a new word of the day when the round ends', function () {
-    Work::create([
-        'title' => 'The first word',
-        'type' => 'word_of_the_day',
-        'created_by' => $this->user1->id,
-        'status' => 'in_progress',
-    ]);
-
-    Work::create([
-        'title' => 'A new word',
-        'type' => 'word_of_the_day',
-        'created_by' => $this->user1->id,
-        'status' => 'queued',
-    ]);
-
     $original_word = Work::find(2);
     $next_word = Work::find(3);
 
@@ -136,4 +150,17 @@ it('sets up a new word of the day when the round ends', function () {
 
     $this->assertEquals(Work::find(2)->fresh()->status, 'complete');
     $this->assertEquals(Work::find(3)->fresh()->status, 'in_progress');
+});
+
+it('sets up a new question/advice of the day when the round ends', function () {
+    $original_question = Work::where('type', 'advice')->first();
+
+    Submission::fromTemplate($original_question, $this->user1, 'Advice');
+
+    TestTime::addDay();
+    $this->round->endRound();
+    TestTime::addMinute();
+
+    $this->assertEquals(Work::find(4)->fresh()->status, 'complete');
+    $this->assertEquals(Work::find(5)->fresh()->status, 'in_progress');
 });

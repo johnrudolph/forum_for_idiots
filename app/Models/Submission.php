@@ -228,6 +228,7 @@ class Submission extends Model
             if(stripos($this->text, $dirty_word) > -1)
             {
                 $this->update(['status' => 'censored']);
+                $this->delete();
             }
         }
     }

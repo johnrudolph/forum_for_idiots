@@ -47,6 +47,7 @@ class DatabaseSeeder extends Seeder
             'status' => 'complete',
             'type' => 'advice',
             'round_id' => 1,
+            'user_id' => 1,
         ]);
 
         Work::create([
@@ -54,6 +55,7 @@ class DatabaseSeeder extends Seeder
             'status' => 'complete',
             'type' => 'word_of_the_day',
             'round_id' => 1,
+            'user_id' => 1,
         ]);
 
         Work::create([
@@ -61,6 +63,7 @@ class DatabaseSeeder extends Seeder
             'status' => 'in_progress',
             'type' => 'advice',
             'round_id' => 2,
+            'user_id' => 1,
         ]);
 
         Work::create([
@@ -68,6 +71,7 @@ class DatabaseSeeder extends Seeder
             'status' => 'in_progress',
             'type' => 'word_of_the_day',
             'round_id' => 2,
+            'user_id' => 1,
         ]);
 
         Round::create([
