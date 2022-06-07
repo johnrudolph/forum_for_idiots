@@ -87,6 +87,10 @@ class Round extends Model
             ->where('score', $top_queued_score)
             ->first();
 
+        if ($previous_word_of_the_day === null ) {
+            return;
+        }
+
         // dumb thing I'm doing so that when I deploy the app it works
         if(Submission::count() === 0)
         {
@@ -119,6 +123,10 @@ class Round extends Model
             ->where('status', 'queued')
             ->where('score', $top_queued_score)
             ->first();
+
+        if ($previous_advice === null ) {
+            return;
+        }
 
         // dumb thing I'm doing so that when I deploy the app it works
         if(Submission::count() === 0)
