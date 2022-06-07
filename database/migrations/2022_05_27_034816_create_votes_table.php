@@ -22,7 +22,7 @@ return new class extends Migration
             $table->foreignIdFor(Submission::class, 'submission_id')->nullable();
             $table->foreignIdFor(Work::class, 'work_id')->nullable();
             $table->foreignIdFor(User::class, 'user_id');
-            $table->foreignIdFor(Round::class, 'round_id');
+            $table->integer('user_rewarded');
             $table->string('type')->enum(['upvote', 'downvote']);
             $table->timestamps();
         });

@@ -42,6 +42,7 @@ it('allows a user to upvote a completed work', function () {
         'title' => 'The Title',
         'type' => 'poem',
         'status' => 'complete',
+        'user_id' => $this->user->id,
     ]);
 
     $work2 = Work::find(2);
@@ -51,11 +52,12 @@ it('allows a user to upvote a completed work', function () {
     $this->assertEquals(1, $work2->score);
 });
 
-it('allows a user to downvote a submission', function () {
+it('allows a user to downvote a work', function () {
     Work::create([
         'title' => 'The Title',
         'type' => 'poem',
         'status' => 'complete',
+        'user_id' => $this->user->id,
     ]);
 
     $work2 = Work::find(2);
@@ -70,6 +72,7 @@ it('allows a user to change their vote', function () {
         'title' => 'The Title',
         'type' => 'poem',
         'status' => 'complete',
+        'user_id' => $this->user->id,
     ]);
 
     $work2 = Work::find(2);
@@ -98,6 +101,7 @@ it('throws an error if user upvotes or downvotes a submission twice in a row', f
         'title' => 'The Title',
         'type' => 'poem',
         'status' => 'complete',
+        'user_id' => $this->user->id,
     ]);
 
     $work2 = Work::find(2);
@@ -111,4 +115,38 @@ it('throws an error if user upvotes or downvotes a submission twice in a row', f
 
     expect(fn() => $work2->upvote($this->user))
         ->toThrow(InvalidVoteException::class, "You have already upvoted this work.");
+});
+
+it('deletes all votes for a work after the work is deleted', function () {
+    Work::create([
+        'title' => 'The Title',
+        'type' => 'poem',
+        'status' => 'complete',
+        'user_id' => $this->user->id,
+    ]);
+
+    $work2 = Work::find(2);
+
+    $work2->upvote($this->user);
+
+    $this->assertEquals(1, $work2->score);
+});
+
+it('updates a users aggregate_score when their submission is voted for or deleted', function () {
+    Work::create([
+        'title' => 'The Title',
+        'type' => 'poem',
+        'status' => 'complete',
+        'user_id' => $this->user->id,
+    ]);
+
+    $work2 = Work::find(2);
+
+    $work2->upvote($this->user);
+
+    $this->assertEquals(1, $this->user->fresh()->aggregate_score);
+
+    $work2->userDelete();
+
+    $this->assertEquals(0, $this->user->fresh()->aggregate_score);
 });

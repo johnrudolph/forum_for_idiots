@@ -2,6 +2,7 @@
     <div class="flex flex-col gap-y-4">
 
         <!-- Recent word of the day -->
+        @if($word_of_the_day_yesterday !== null)
         <div class="flex flex-col w-full bg-gray-700 border border-color-white rounded-lg">
             <div class="bg-gray-800 rounded-t-lg">
                 <p class="pt-4 pl-4 pb-2 text-white text-lg leading-7 font-semibold tracking-wide">
@@ -9,14 +10,14 @@
                 </p>
             </div>
             <div>
-                <p class="pt-3 px-4 text-white text-md font-semi-bold leading-7">
+                <p class="pt-3 px-4 text-white text-md font-bold leading-7">
                     {{ $word_of_the_day_yesterday->title }}
                 </p>
-                <p class="pt-2 px-4 pb-4 text-white text-sm leading-7">
+                <p class="py-2 px-4 text-white text-sm leading-7">
                     {{ $word_of_the_day_yesterday_definition->text }}
                 </p>
             </div>
-            <div class="pt-2 bg-gray-800 rounded-b-lg pl-4 pb-2 flex flex-col-3 gap-x-2">
+            <div class="pt-2 bg-gray-800 rounded-b-lg pl-4 pb-2 flex flex-col-4 gap-x-2">
                 <div wire:click="upvoteWordOfTheDay">
                     <x-icons.upvote/>
                 </div>
@@ -28,11 +29,18 @@
                 <div wire:click="downvoteWordOfTheDay">
                     <x-icons.downvote/>
                 </div>
+                <div>
+                    <p class="pt-1 px-4 pb-2 text-xs italic text-white">
+                        Word submitted by {{$word_of_the_day_yesterday->user->name}}. Definition submitted by {{ $word_of_the_day_yesterday_definition->user->name }}.
+                    </p>
+                </div>
             </div>
         </div>
+        @endif
 
         <!-- Recent advice -->
-        <div class="flex flex-col w-full bg-gray-700 border border-color-white rounded-lg">
+        @if($advice_yesterday !== null)
+        <div class="flex flex-col w-full bg-gray-700 border font-bold border-color-white rounded-lg">
             <div class="bg-gray-800 rounded-t-lg">
                 <p class="pt-4 pl-4 pb-2 text-white text-lg leading-7 font-semibold tracking-wide">
                     Recent Advice
@@ -42,11 +50,11 @@
                 <p class="pt-3 px-4 text-white text-md font-semi-bold leading-7">
                     {{ $advice_yesterday->title }}
                 </p>
-                <p class="pt-2 px-4 pb-4 text-white text-sm leading-7">
+                <p class="pt-2 px-4 pb-4 text-white font-normal text-sm leading-7">
                     {{ $advice_yesterday_answer->text }}
                 </p>
             </div>
-            <div class="pt-2 bg-gray-800 rounded-b-lg pl-4 pb-2 flex flex-col-3 gap-x-2">
+            <div class="pt-2 bg-gray-800 rounded-b-lg pl-4 pb-2 flex flex-col-4 gap-x-2">
                 <div wire:click="upvoteAdvice">
                     <x-icons.upvote/>
                 </div>
@@ -58,8 +66,14 @@
                 <div wire:click="downvoteAdvice">
                     <x-icons.downvote/>
                 </div>
+                <div>
+                    <p class="pt-1 px-4 pb-2 font-normal text-xs italic text-white">
+                        Question submitted by {{$advice_yesterday->user->name}}. Answer submitted by {{ $advice_yesterday_answer->user->name }}.
+                    </p>
+                </div>
             </div>
         </div>
+        @endif
 
         <!-- Submit something new -->
         <div class="flex flex-col w-full bg-gray-700 border border-color-white rounded-lg">
@@ -91,12 +105,14 @@
         </div>
 
         <!-- Today's questions -->
+        @if($word_of_the_day !== null && $advice !== null)
         <div class="flex flex-col w-full bg-gray-700 border border-color-white rounded-lg">
             <div class="bg-gray-800 rounded-t-lg">
                 <p class="pt-4 pl-4 pb-2 text-white text-lg leading-7 font-semibold tracking-wide">
                     Answer today's questions
                 </p>
             </div>
+            @if($word_of_the_day !== null)
             <div>
                 <p class="pt-3 px-4 text-white text-md font-semi-bold leading-7">
                     Word of the day: {{ $word_of_the_day->title }}
@@ -107,6 +123,8 @@
                     </p>
                 </button>
             </div>
+            @endif
+            @if($advice !== null)
             <div>
                 <p class="px-4 text-white text-md font-semi-bold leading-7">
                     Today's question: {{ $advice->title }}
@@ -117,6 +135,8 @@
                     </p>
                 </button>
             </div>
+            @endif
         </div>
+        @endif
     </div>
 </div>

@@ -24,29 +24,42 @@ class SubmitDefinition extends Component
             ->get()
             ->last();
 
-        $this->definitions = Submission::where('work_id', $this->word->id)
-            ->where('status', 'pending')
-            ->orderByDesc('score')
-            ->get();
+        if($this->word)
+        {
+            $this->definitions = Submission::where('work_id', $this->word->id)
+                ->where('status', 'pending')
+                ->orderByDesc('score')
+                ->get();
 
+            if(Submission::where('work_id', $this->word->id)
+                ->where('status', 'pending')
+                ->where('user_id', $this->user->id)
+                ->count() > 0)
+            {
+                $this->at_max_submissions = true;
+            }
+            else
+            {
+                $this->at_max_submissions = false;
+            }
+        } else {
+            $this->definitions = null;
+        }
+        
         $this->sort_by = 'score';
-
-        if(Submission::where('work_id', $this->word->id)
-            ->where('status', 'pending')
-            ->where('user_id', $this->user->id)
-            ->count() > 0)
-        {
-            $this->at_max_submissions = true;
-        }
-        else
-        {
-            $this->at_max_submissions = false;
-        }
     }
     
     public function submitNewDefinition()
     {
         $this->validate();
+
+        if(Submission::where('work_id', $this->word->id)
+            ->where('text', $this->new_definition)
+            ->exists())
+        {
+            session()->flash('message', 'This definition has already been submitted.');
+            return;
+        }
         
         Submission::fromTemplate($this->word, $this->user, $this->new_definition);
 
@@ -137,7 +150,7 @@ class SubmitDefinition extends Component
     {
         $definition = Submission::find($definition_id);
 
-        $definition->delete();
+        $definition->userDelete();
 
         $this->sort();
 

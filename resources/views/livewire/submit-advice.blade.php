@@ -1,4 +1,5 @@
-<div wire:poll>
+<div>
+    @if($question !== null)
     <div class="mt-8 flex flex-col gap-y-4">
         @if($at_max_submissions === false)
             <form wire:submit.prevent="submitNewAdvice">
@@ -15,11 +16,18 @@
                             name="new_advice" 
                             id="new_advice" 
                             wire:model="new_advice"
-                            class="max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md"
+                            class="max-w-full block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300 rounded-md"
                         >
                         <p class="text-white text-sm leading-7 pt-2">
                             Advice must be 3-250 characters
                         </p>
+                        <div>
+                            @if (session()->has('message'))
+                                <div class="pt-1 text-red-600 text-sm">
+                                    {{ session('message') }}
+                                </div>
+                            @endif
+                        </div>
                     </div>
                     </div>
                     <div class="bg-gray-800 rounded-b-lg px-4 py-2 flex">
@@ -95,7 +103,7 @@
                                         {{ $advice_submission->created_at->diffForHumans() }}
                                     </p>
                                 </div>
-                                @if($advice_submission->user_id === $user->id)
+                                @if($advice_submission->user_id === $user->id || $user->is_moderator)
                                     <div>
                                         <button wire:click="delete( {{$advice_submission->id}} )">
                                             <p class="text-red-500 text-sm">
@@ -111,4 +119,13 @@
             </div>
         </div>
     </div>
+    @else
+        <div class="mt-8 flex flex-col">
+            <div class="flex flex-col w-full bg-gray-700 border border-color-white rounded-lg">
+                <p class="pt-4 pl-4 pb-2 text-white text-lg leading-7 font-semibold tracking-wide">
+                    No questions were queued for today. <a class="text-blue-500" href='/submit-question'>Submit more questions<a> to get started.
+                </p>
+            </div>
+        </div>
+    @endif
 </div>

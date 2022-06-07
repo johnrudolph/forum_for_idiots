@@ -48,7 +48,6 @@ class Submission extends Model
 
         if(Submission::where('work_id', $work->id)
             ->where('user_id', $user->id)
-            ->where('round_id', Round::currentRound()->id)
             ->exists()) 
         {
             throw new InvalidSubmissionException('You can only submit to each work once per day.');
@@ -57,7 +56,6 @@ class Submission extends Model
         $newSubmission = Submission::create([
             'user_id' => $user->id,
             'work_id' => $work->id,
-            'round_id' => Round::currentRound()->id,
             'status' => 'pending',
             'text' => $text,
         ]);
@@ -87,22 +85,18 @@ class Submission extends Model
                 ->where('type', 'downvote')
                 ->first()
                 ->delete();
-
-            $this->decrement('downvotes');
-            $this->increment('score');
-            $this->user->increment('aggregate_score');
         }
         
         Vote::create([
             'user_id' => $user->id,
             'submission_id' => $this->id,
-            'round_id' => Round::currentRound()->id,
             'type' => 'upvote',
+            'user_rewarded' => $this->user_id,
         ]);
+
+        User::find($this->user_id)->calculateAggregateScore();
         
-        $this->increment('upvotes');
-        $this->increment('score');
-        $this->user->increment('aggregate_score');
+        $this->calculateScore();
     }
 
     public function downvote(User $user)
@@ -125,71 +119,78 @@ class Submission extends Model
                 ->where('type', 'upvote')
                 ->first()
                 ->delete();
-
-            $this->decrement('upvotes');
-            $this->decrement('score');
-            $this->user->decrement('aggregate_score');
         }
         
         Vote::create([
             'user_id' => $user->id,
             'submission_id' => $this->id,
-            'round_id' => Round::currentRound()->id,
             'type' => 'downvote',
+            'user_rewarded' => $this->user_id,
         ]);
+
+        User::find($this->user_id)->calculateAggregateScore();
         
-        $this->increment('downvotes');
-        $this->decrement('score');
-        $this->user->decrement('aggregate_score');
+        $this->calculateScore();
+    }
+
+    public function calculateScore()
+    {
+        $upvotes = $this->votes()
+            ->where('type', 'upvote')
+            ->count();
+
+        $downvotes = $this->votes()
+            ->where('type', 'downvote')
+            ->count();
+
+        $this->update(['score' => $upvotes - $downvotes]);
+    }
+
+    public function isTopScoringSubmission()
+    {
+        if($this->score === Submission::where('work_id', $this->work_id)->max('score')) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public function topSubmissionsAreTied()
+    {
+        if(Submission::where('work_id', $this->work_id)->where('score', $this->work->topScore())->count() > 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public function userHasTopAggregateScore()
+    {        
+        if($this->work->topAggregateScoreOfSubmitters() === $this->user->aggregate_score) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public function grade()
     {
-        $top_score = Submission::where('work_id', $this->work_id)->max('score');
-        
-        $best_submissions = DB::table('users')
-            ->join('submissions', 'users.id', '=', 'submissions.user_id')
-            ->select(
-                'submissions.id as submission_id',
-                'submissions.work_id as work_id',
-                'submissions.round_id as round_id',
-                'users.id as user_id',
-                'users.aggregate_score as aggregate_score',
-            )
-            ->where('submissions.work_id', $this->work_id)
-            ->where('submissions.round_id', $this->round_id)
-            ->get();
-
-        $best_aggregate_score = $best_submissions->max('aggregate_score');
-        
-        if($this->score != $top_score) 
-        {
+        if($this->isTopScoringSubmission() === false) {
+            $this->update(['status' => 'rejected']);
+        } 
+        elseif($this->topSubmissionsAreTied() === false) {
+            $this->update(['status' => 'accepted']);
+        }
+        elseif(Submission::where('work_id', $this->work_id)->where('status', 'accepted')->exists()) {
             $this->update(['status' => 'rejected']);
         }
-        elseif($best_submissions->where('aggregate_score', $best_aggregate_score)->count() > 1)
-        {
-            // this has the top score AND another user is tied for top aggregate score
-            // logic for handling ties is in round->endround(), which is dumb
-            $this->update(['status' => 'tied']);
-        }
-        else
-        {
-            if($this->user->aggregate_score === $best_submissions->max('aggregate_score'))
-            {
-                // this has the top score AND the user has the top aggregate score
-                $this->update(['status' => 'accepted']);
-            }
-            else
-            {
-                // this has the top score AND the user does not have the top aggregate score
-                $this->update(['status' => 'rejected']);
-            }
+        else {
+            $this->update(['status' => 'accepted']);
         }
     }
 
     public function punctuate()
     {
-        // dd($this->text);   
         if(Str::endsWith($this->text, ['...', '.', '!', '?'])) {
             $this->update(['text' => $this->text.' ']);
         }
@@ -231,5 +232,19 @@ class Submission extends Model
                 $this->delete();
             }
         }
+    }
+
+    public function userDelete()
+    {
+        $submitter = User::find($this->user_id);
+        
+        $this->delete();
+
+        foreach(Vote::where('submission_id', $this->id)->get() as $vote)
+        {
+            $vote->delete();
+        }
+
+        $submitter->calculateAggregateScore();
     }
 }

@@ -41,6 +41,14 @@ class SubmitWord extends Component
     public function submitNewWord()
     {
         $this->validate();
+
+        if(Work::where('type', 'word_of_the_day')
+            ->where('title', $this->new_word)
+            ->exists())
+        {
+            session()->flash('message', 'This word has already been submitted.');
+            return;
+        }
         
         Work::fromTemplate($this->new_word, 'word_of_the_day', $this->user);
 
@@ -140,7 +148,7 @@ class SubmitWord extends Component
     {
         $word = Work::find($word_id);
 
-        $word->delete();
+        $word->userDelete();
 
         $this->sort();
 

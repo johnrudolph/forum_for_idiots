@@ -44,30 +44,34 @@ class Round extends Model
         ]);
     }
 
-    public function endRound()
+    public function currentWordOfTheDay()
     {
-        foreach($this->submissions as $submission) {
+        return Work::where('type', 'word_of_the_day')
+            ->where('status', 'in_progress')
+            ->first();
+    }
+
+    public function currentAdvice()
+    {
+        return Work::where('type', 'advice')
+            ->where('status', 'in_progress')
+            ->first();
+    }
+
+    public static function endRound()
+    {
+        foreach(Submission::where('status', 'pending')->get() as $submission) {
             $submission->grade();
         }
 
-        if(Submission::where('round_id', $this->id)->where('status', 'tied')->exists())
-        {
-            Submission::where('round_id', $this->id)
-                ->where('status', 'tied')
-                ->get()
-                ->random()
-                ->update(['status' => 'accepted']);
-        }
-
-        $this->update(['ends_at' => now()]);
-        
+        Round::currentRound()->update(['ends_at' => now()]);
         Round::fromTemplate();
 
-        $this->setUpNextWord();
-        $this->setUpNextQuestion();
+        Round::setUpNextWord();
+        Round::setUpNextQuestion();
     }
 
-    public function setUpNextWord()
+    public static function setUpNextWord()
     {        
         $previous_word_of_the_day = Work::where('type', 'word_of_the_day')
             ->where('status', 'in_progress')
@@ -83,7 +87,12 @@ class Round extends Model
             ->where('score', $top_queued_score)
             ->first();
 
-        if(Submission::where('work_id', $previous_word_of_the_day->id)->where('status', 'accepted')->exists())
+        // dumb thing I'm doing so that when I deploy the app it works
+        if(Submission::count() === 0)
+        {
+            $next_word_of_the_day->update(['status' => 'in_progress']);
+        }
+        elseif(Submission::where('work_id', $previous_word_of_the_day->id)->where('status', 'accepted')->exists())
         {
             $previous_word_of_the_day->update(['status' => 'complete']);
 
@@ -95,7 +104,7 @@ class Round extends Model
         }
     }
 
-    public function setUpNextQuestion()
+    public static function setUpNextQuestion()
     {
         $previous_advice = Work::where('type', 'advice')
             ->where('status', 'in_progress')
@@ -111,7 +120,12 @@ class Round extends Model
             ->where('score', $top_queued_score)
             ->first();
 
-        if(Submission::where('work_id', $previous_advice->id)->where('status', 'accepted')->exists())
+        // dumb thing I'm doing so that when I deploy the app it works
+        if(Submission::count() === 0)
+        {
+            $next_advice->update(['status' => 'in_progress']);
+        }
+        elseif(Submission::where('work_id', $previous_advice->id)->where('status', 'accepted')->exists())
         {            
             $previous_advice->update(['status' => 'complete']);
 

@@ -1,11 +1,12 @@
 <?php
 
-use App\Exceptions\InvalidSubmissionException;
 use App\Models\User;
+use App\Models\Vote;
 use App\Models\Work;
 use App\Models\Round;
 use App\Models\Submission;
 use App\Exceptions\InvalidVoteException;
+use App\Exceptions\InvalidSubmissionException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 
 uses(DatabaseMigrations::class);
@@ -19,7 +20,7 @@ beforeEach(function () {
     Round::fromTemplate();
 });
 
-it('allows a user to submit a new sentence', function () {
+it('allows a user to make a new submission', function () {
     Submission::fromTemplate($this->poem, $this->user, 'Hello, world!');
 
     $this->assertDatabaseHas('submissions', [
@@ -34,7 +35,7 @@ it('allows a user to upvote a submission', function () {
 
     $submission->upvote($this->user, $submission);
 
-    $this->assertEquals(1, $submission->upvotes);
+    $this->assertEquals(1, $submission->score);
 });
 
 it('allows a user to downvote a submission', function () {
@@ -43,7 +44,7 @@ it('allows a user to downvote a submission', function () {
 
     $submission->downvote($this->user, $submission);
 
-    $this->assertEquals(1, $submission->downvotes);
+    $this->assertEquals(-1, $submission->score);
 });
 
 it('allows a user to change their vote', function () {
@@ -53,15 +54,13 @@ it('allows a user to change their vote', function () {
     $submission->upvote($this->user, $submission);
     $submission->downvote($this->user, $submission);
 
-    $this->assertEquals(0, $submission->upvotes);
-    $this->assertEquals(1, $submission->downvotes); 
+    $this->assertEquals(-1, $submission->score);
     $this->assertEquals(1, $submission->votes()->where('type', 'downvote')->count());
     $this->assertEquals(0, $submission->votes()->where('type', 'upvote')->count());
 
     $submission->upvote($this->user, $submission);
 
-    $this->assertEquals(1, $submission->upvotes);
-    $this->assertEquals(0, $submission->downvotes); 
+    $this->assertEquals(1, $submission->score);
     $this->assertEquals(0, $submission->votes()->where('type', 'downvote')->count());
     $this->assertEquals(1, $submission->votes()->where('type', 'upvote')->count());
 });
@@ -112,4 +111,31 @@ it('punctuates short story submissions, but not poetry submissions', function ()
 it('removes white space from submissions', function () {
     $submission = Submission::fromTemplate($this->poem, $this->user, '    a man   walked      into a bar     ');
     $this->assertEquals('a man walked into a bar', $submission->fresh()->text);
+});
+
+it('deletes all votes for a submission after the submission is deleted', function () {
+    Submission::fromTemplate($this->poem, $this->user, 'Hello, world!');
+    $submission = Submission::first();
+
+    $submission->upvote($this->user, $submission);
+
+    $this->assertEquals(1, $submission->votes()->count());
+
+    $submission->userDelete();
+
+    $this->assertEquals(0, $submission->votes()->count());
+});
+
+it('updates a users aggregate_score when their submission is voted for or deleted', function () {
+    Submission::fromTemplate($this->poem, $this->user, 'Hello, world!');
+    $submission = Submission::first();
+
+    $submission->upvote($this->user, $submission);
+
+    $this->assertEquals(1, $this->user->fresh()->aggregate_score);
+
+    $submission->userDelete();
+
+    $this->assertEquals(0, $submission->votes()->count());
+    $this->assertEquals(0, $this->user->fresh()->aggregate_score);
 });

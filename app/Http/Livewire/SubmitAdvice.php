@@ -24,30 +24,43 @@ class SubmitAdvice extends Component
             ->get()
             ->last();
 
-        $this->advice_submissions = Submission::where('work_id', $this->question->id)
-            ->where('status', 'pending')
-            ->orderByDesc('score')
-            ->get();
+        if($this->question)
+        {
+            $this->advice_submissions = Submission::where('work_id', $this->question->id)
+                ->where('status', 'pending')
+                ->orderByDesc('score')
+                ->get();
+
+            if(Submission::where('work_id', $this->question->id)
+                ->where('status', 'pending')
+                ->where('user_id', $this->user->id)
+                ->count() > 0)
+            {
+                $this->at_max_submissions = true;
+            }
+            else
+            {
+                $this->at_max_submissions = false;
+            }
+        } else {
+            $this->advice_submissions = null;
+        }  
 
         $this->sort_by = 'score';
-
-        if(Submission::where('work_id', $this->question->id)
-            ->where('status', 'pending')
-            ->where('user_id', $this->user->id)
-            ->count() > 0)
-        {
-            $this->at_max_submissions = true;
-        }
-        else
-        {
-            $this->at_max_submissions = false;
-        }
     }
     
     public function submitNewAdvice()
     {
         $this->validate();
-        
+
+        if(Submission::where('work_id', $this->question->id)
+            ->where('text', $this->new_advice)
+            ->exists())
+        {
+            session()->flash('message', 'This advice has already been submitted.');
+            return;
+        }
+
         Submission::fromTemplate($this->question, $this->user, $this->new_advice);
 
         $this->at_max_submissions = true;
@@ -137,7 +150,7 @@ class SubmitAdvice extends Component
     {
         $advice = Submission::find($advice_id);
 
-        $advice->delete();
+        $advice->userDelete();
 
         $this->sort();
 

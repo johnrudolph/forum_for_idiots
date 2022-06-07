@@ -19,13 +19,10 @@ return new class extends Migration
         Schema::create('submissions', function (Blueprint $table) {
             $table->id();
             $table->text('text');
-            $table->integer('upvotes')->default(0);
-            $table->integer('downvotes')->default(0);
             $table->integer('score')->default(0);
             $table->string('status')->enum(['pending', 'accepted', 'rejected', 'tied', 'censored']);
             $table->foreignIdFor(User::class, 'user_id');
             $table->foreignIdFor(Work::class, 'work_id');
-            $table->foreignIdFor(Round::class, 'round_id');
             $table->timestamps();
         });
     }

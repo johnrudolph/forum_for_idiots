@@ -24,6 +24,7 @@ class User extends Authenticatable
         'email',
         'password',
         'aggregate_score',
+        'is_moderator',
     ];
 
     /**
@@ -58,5 +59,18 @@ class User extends Authenticatable
     public function works()
     {
         return $this->hasMany(Work::class);
+    }
+
+    public function calculateAggregateScore()
+    {
+        $upvotes = Vote::where('user_rewarded' , $this->id)
+            ->where('type', 'upvote')
+            ->count();
+
+        $downvotes = Vote::where('user_rewarded' , $this->id)
+            ->where('type', 'downvote')
+            ->count();
+
+        $this->update(['aggregate_score' => $upvotes - $downvotes]);
     }
 }

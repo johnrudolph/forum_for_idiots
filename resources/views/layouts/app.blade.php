@@ -20,7 +20,7 @@
     </head>
     <body class="font-sans bg-gray-800 antialiased">
         @include('layouts.navigation')
-        <div class="mx-auto max-w-sm w-[95%]">
+        <div class="mx-auto max-w-xl w-[95%]">
             <!-- Page Content -->
             <main>
                 {{ $slot }}

@@ -32,8 +32,6 @@ class WorkPage extends Component
 
     public function submit()
     {
-        dd('submit');
-
         Submission::fromTemplate($this->poem, $this->user, $this->submission);
     }
 

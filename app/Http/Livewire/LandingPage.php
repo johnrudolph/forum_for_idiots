@@ -16,28 +16,29 @@ class LandingPage extends Component
             ->get()
             ->last();
 
-        $this->word_of_the_day_yesterday_definition = Submission::where('work_id', $this->word_of_the_day_yesterday->id)
+        if($this->word_of_the_day_yesterday)
+        {
+            $this->word_of_the_day_yesterday_definition = Submission::where('work_id', $this->word_of_the_day_yesterday->id)
             ->where('status', 'accepted')
             ->first();
+        } else {
+            $this->word_of_the_day_yesterday_definition = null;
+        }
 
         $this->advice_yesterday = Work::where('type', 'advice')
             ->where('status', 'complete')
             ->get()
             ->last();
 
-        $this->advice_yesterday_answer = Submission::where('work_id', $this->advice_yesterday->id)
-            ->where('status', 'accepted')
-            ->first();
-
-        $this->word_of_the_day = Work::where('type', 'word_of_the_day')
-            ->where('status', 'in_progress')
-            ->get()
-            ->last();
-
-        $this->advice = Work::where('type', 'advice')
-            ->where('status', 'in_progress')
-            ->get()
-            ->last();
+        if($this->advice_yesterday)
+        {
+            $this->advice_yesterday_answer = Submission::where('work_id', $this->advice_yesterday->id)
+                ->where('status', 'accepted')
+                ->first();
+        } else {
+            $this->advice_yesterday_answer = null;
+        }
+        
     }
     
     public function render()

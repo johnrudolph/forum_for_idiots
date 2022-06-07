@@ -33,6 +33,7 @@
         </div>
 
         <!-- Recent word of the day -->
+        @if($word_of_the_day_yesterday !== null)
         <div class="flex flex-col w-full bg-gray-700 border border-color-white rounded-lg">
             <div class="bg-gray-800 rounded-t-lg">
                 <p class="pt-4 pl-4 pb-2 text-white text-lg leading-7 font-semibold tracking-wide">
@@ -51,8 +52,10 @@
                 </p>
             </div>
         </div>
+        @endif
 
         <!-- Recent advice -->
+        @if($advice_yesterday !== null)
         <div class="flex flex-col w-full bg-gray-700 border border-color-white rounded-lg">
             <div class="bg-gray-800 rounded-t-lg">
                 <p class="pt-4 pl-4 pb-2 text-white text-lg leading-7 font-semibold tracking-wide">
@@ -71,5 +74,6 @@
                 </p>
             </div>
         </div>
+        @endif
     </div>
 </div>

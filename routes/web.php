@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Livewire\AllCompletedWorks;
+use App\Http\Livewire\ModeratorPage;
 use App\Http\Livewire\WorkPage;
 use App\Http\Livewire\SubmitWord;
 use App\Http\Livewire\SubmitWork;
@@ -31,6 +32,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/define-word-of-the-day', SubmitDefinition::class)->name('submit-definition');
     Route::get('/give-advice', SubmitAdvice::class)->name('give-advice');
     Route::get('/all', AllCompletedWorks::class)->name('all');
+    Route::get('/super-secret-moderator-page', ModeratorPage::class)->name('super-secret-moderator-page');
 });
 
 Route::get('/dashboard', function () {

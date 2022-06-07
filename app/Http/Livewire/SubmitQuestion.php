@@ -41,7 +41,15 @@ class SubmitQuestion extends Component
     public function submitNewQuestion()
     {
         $this->validate();
-        
+
+        if(Work::where('type', 'advice')
+            ->where('title', $this->new_question)
+            ->exists())
+        {            
+            session()->flash('message', 'This question has already been submitted.');
+            return;
+        }
+    
         Work::fromTemplate($this->new_question, 'advice', $this->user);
 
         $this->new_question = '';
@@ -140,7 +148,7 @@ class SubmitQuestion extends Component
     {
         $question = Work::find($question_id);
 
-        $question->delete();
+        $question->userDelete();
 
         $this->sort();
 

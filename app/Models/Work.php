@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Models\User;
 use App\Models\Vote;
 use App\Models\Submission;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 use App\Exceptions\InvalidVoteException;
 use App\Exceptions\InvalidWorkException;
@@ -24,6 +26,11 @@ class Work extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function votes()
+    {
+        $this->hasMany(Vote::class);
     }
 
     public static function fromTemplate(String $title, String $type, User $user)
@@ -47,7 +54,7 @@ class Work extends Model
 
         if($type === 'poem' || $type === 'short_story')
         {
-            Work::create([
+            $new_work = Work::create([
                 'title' => $title,
                 'type' => $type,
                 'status' => 'in_progress',
@@ -56,13 +63,15 @@ class Work extends Model
         }
         else
         {
-            Work::create([
+            $new_work = Work::create([
                 'title' => $title,
                 'type' => $type,
                 'status' => 'queued',
                 'user_id' => $user->id,
             ]);
         }
+
+        $new_work->cleanUp();
     }
 
     public function complete()
@@ -144,18 +153,18 @@ class Work extends Model
                 ->where('type', 'downvote')
                 ->first()
                 ->delete();
-
-            $this->increment('score');
         }
-        
+
         Vote::create([
             'user_id' => $user->id,
             'work_id' => $this->id,
-            'round_id' => Round::currentRound()->id,
             'type' => 'upvote',
+            'user_rewarded' => $this->user_id,
         ]);
 
-        $this->increment('score');
+        User::find($this->user_id)->calculateAggregatescore();
+
+        $this->calculateScore();
     }
 
     public function downvote(User $user)
@@ -178,17 +187,92 @@ class Work extends Model
                 ->where('type', 'upvote')
                 ->first()
                 ->delete();
-
-            $this->decrement('score');
         }
         
         Vote::create([
             'user_id' => $user->id,
             'work_id' => $this->id,
-            'round_id' => Round::currentRound()->id,
             'type' => 'downvote',
+            'user_rewarded' => $this->user_id,
         ]);
 
-        $this->decrement('score');
+        User::find($this->user_id)->calculateAggregatescore();
+
+        $this->calculateScore();
+    }
+
+    public function cleanUp()
+    {
+        $this->update(['title' => Str::squish($this->title)]);
+        
+        $this->censor();
+    }
+
+    public function usersWhoSubmittedToThisWork()
+    {
+        return User::where('id', $this->submissions()->pluck('user_id'))
+            ->get();
+
+        dump(User::where('id', $this->submissions()->pluck('user_id'))
+        ->get());
+    }
+
+    public function topScore()
+    {
+        return $this->submissions()
+            ->get()
+            ->max('score');
+    }
+
+    public function topAggregateScoreOfSubmitters()
+    {
+        return $this->usersWhoSubmittedToThisWork()->max('aggregate_score');
+    }
+
+    public function censor()
+    {
+        $dirty_words = [
+            ' fuck ', ' shit ', ' bitch ', ' asshole ', ' dick ', ' titties ', ' cock ', ' pussy ', ' nigger ', ' anal ', ' anus ', 
+            ' arse ', ' ballsack ', ' biatch ', ' blowjob ', ' blow job ', ' blowjob ', ' boner ', ' boob ', ' buttplug ', ' clitoris '
+            ,' coon ',' cunt ', ' dildo ', ' dyke ', ' fag ', ' faggot ', ' feck ',' fellate ',' fellatio ', ' f u c k ', ' n i g g e r ',
+            ' fudgepacker ',' fudge packer ',' Goddamn ',' God damn ',' homo ',' jizz ', ' labia ',' muff ',' nigga ',' penis ',' prick ',
+            ' pube ',' scrotum ',' slut ',' tit ',' twat ',' vagina ',' wank ',' whore ',' wtf ',
+        ];
+
+        foreach($dirty_words as $dirty_word)
+        { 
+            if(stripos($this->title, $dirty_word) > -1)
+            {
+                $this->update(['status' => 'censored']);
+                $this->delete();
+            }
+        }
+    }
+
+    public function calculateScore()
+    {
+        $upvotes = Vote::where('work_id', $this->id)
+            ->where('type', 'upvote')
+            ->count();
+
+        $downvotes = Vote::where('work_id', $this->id)
+            ->where('type', 'downvote')
+            ->count();
+
+        $this->update(['score' => $upvotes - $downvotes]);
+    }
+
+    public function userDelete()
+    {
+        $submitter = User::find($this->user_id);
+        
+        $this->delete();
+
+        foreach(Vote::where('work_id', $this->id)->get() as $vote)
+        {
+            $vote->delete();
+        }
+
+        $submitter->calculateAggregateScore();
     }
 }
