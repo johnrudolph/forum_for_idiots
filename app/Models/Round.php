@@ -59,12 +59,16 @@ class Round extends Model
     }
 
     public static function endRound()
-    {
+    {        
         foreach(Submission::where('status', 'pending')->get() as $submission) {
             $submission->grade();
         }
 
-        Round::currentRound()->update(['ends_at' => now()]);
+        if(Round::currentRound() !== null)
+        {
+            Round::currentRound()->update(['ends_at' => now()]);
+        }
+        
         Round::fromTemplate();
 
         Round::setUpNextWord();
