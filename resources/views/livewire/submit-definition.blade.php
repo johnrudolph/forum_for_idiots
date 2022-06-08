@@ -54,11 +54,6 @@
 
         <div>
             <div class="flow-root mt-6">
-                <div>
-                    <p class="text-white text-lg font-semibold">
-                        Definitions for "{{ $word->title }}"
-                    </p>
-                </div>
                 <div class="flex flex-col-3 py-4 space-x-5">
                     <button wire:click="sortByScore">
                         <p class="text-blue-500 text-sm font-semibold">
