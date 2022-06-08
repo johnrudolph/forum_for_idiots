@@ -12,7 +12,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->call(function () {
             Round::endRound();
-        })->everyMinute();
+        })->daily();
     }
 
     protected function commands()
